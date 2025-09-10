@@ -11,19 +11,19 @@ A simple Python tool to convert video files to audio format with progress bars.
 ## Basic Usage
 
 # Convert all MP4 files in current folder
-python convert.py
+`python convert.py`
 
 # Convert specific files
-python convert.py video1.mp4 video2.mkv
+`python convert.py video1.mp4 video2.mkv`
 
 # Save to custom folder
-python convert.py -o audio_output/
+`python convert.py -o audio_output/`
 
 # High quality conversion
-python convert.py -b 320k
+`python convert.py -b 320k`
 
 # Convert to WAV format
-python convert.py -f wav
+`python convert.py -f wav`
 
 ## Supported Formats
 
@@ -42,16 +42,16 @@ Output: mp3, wav
 ## Examples
 
 # Convert with high quality and delete originals
-python convert.py -b 320k --delete-original
+`python convert.py -b 320k --delete-original`
 
 # Convert to WAV format in custom folder
-python convert.py -f wav -o my_audio/
+`python convert.py -f wav -o my_audio/`
 
 # Convert specific files with overwrite
-python convert.py video1.mp4 video2.mov --overwrite
+`python convert.py video1.mp4 video2.mov --overwrite`
 
 # Show supported formats
-python convert.py --list-formats
+`python convert.py --list-formats`
 
 ## Requirements
 
@@ -63,6 +63,7 @@ tqdm library (pip install tqdm)
 
 FFmpeg not found error:  
 Make sure FFmpeg is installed and available in your system PATH.
+
 
 Permission errors:  
 Run with appropriate permissions or choose a different output directory.
