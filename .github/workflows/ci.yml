@@ -7,33 +7,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout the code
     - uses: actions/checkout@v4
 
+    # 2️⃣ Setup Python 3.10
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
+    # 3️⃣ Add Conda to PATH
     - name: Add conda to system path
       run: echo $CONDA/bin >> $GITHUB_PATH
 
-    - name: Install ffmpeg (system package)
+    # 4️⃣ Install ffmpeg (system package)
+    - name: Install ffmpeg
       run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
-    # Primo tentativo: Conda
+    # 5️⃣ Install dependencies with Conda
     - name: Install dependencies with conda
       id: conda-deps
       continue-on-error: true
       run: conda env update --file environment.yml --name base
 
-    # Fallback: pip se conda fallisce o manca environment.yml
+    # 6️⃣ Fallback: install dependencies with pip if Conda fails
     - name: Install dependencies with pip
       if: steps.conda-deps.outcome == 'failure'
       run: pip install -r requirements.txt
 
+    # 7️⃣ Lint the code
     - name: Lint with flake8
       run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+    # 8️⃣ Run tests with pytest
     - name: Test with pytest
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)
