@@ -7,40 +7,116 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+<<<<<<< HEAD
     # 1️⃣ Checkout the code
     - uses: actions/checkout@v4
+||||||| parent of e4f1021 (minor updates and fix)
+    - uses: actions/checkout@v4
+=======
+      - uses: actions/checkout@v4
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 2️⃣ Setup Python 3.10
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
+||||||| parent of e4f1021 (minor updates and fix)
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+=======
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 3️⃣ Add Conda to PATH
     - name: Add conda to system path
       run: echo $CONDA/bin >> $GITHUB_PATH
+||||||| parent of e4f1021 (minor updates and fix)
+    - name: Add conda to system path
+      run: echo $CONDA/bin >> $GITHUB_PATH
+=======
+      - name: Add conda to system path
+        run: echo $CONDA/bin >> $GITHUB_PATH
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 4️⃣ Install ffmpeg (system package)
     - name: Install ffmpeg
       run: sudo apt-get update && sudo apt-get install -y ffmpeg
+||||||| parent of e4f1021 (minor updates and fix)
+    - name: Install ffmpeg (system package)
+      run: sudo apt-get update && sudo apt-get install -y ffmpeg
+=======
+      - name: Install ffmpeg (system package)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 5️⃣ Install dependencies with Conda
     - name: Install dependencies with conda
       id: conda-deps
       continue-on-error: true
       run: conda env update --file environment.yml --name base
+||||||| parent of e4f1021 (minor updates and fix)
+    # Primo tentativo: Conda
+    - name: Install dependencies with conda
+      id: conda-deps
+      continue-on-error: true
+      run: conda env update --file environment.yml --name base
+=======
+      # Primo tentativo: Conda
+      - name: Install dependencies with conda
+        id: conda-deps
+        continue-on-error: true
+        run: conda env update --file environment.yml --name base
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 6️⃣ Fallback: install dependencies with pip if Conda fails
     - name: Install dependencies with pip
       if: steps.conda-deps.outcome == 'failure'
       run: pip install -r requirements.txt
+||||||| parent of e4f1021 (minor updates and fix)
+    # Fallback: pip se conda fallisce o manca environment.yml
+    - name: Install dependencies with pip
+      if: steps.conda-deps.outcome == 'failure'
+      run: pip install -r requirements.txt
+=======
+      # Fallback: pip se conda fallisce o manca environment.yml
+      - name: Install dependencies with pip
+        if: steps.conda-deps.outcome == 'failure'
+        run: pip install -r requirements.txt
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 7️⃣ Lint the code
     - name: Lint with flake8
       run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+||||||| parent of e4f1021 (minor updates and fix)
+    - name: Lint with flake8
+      run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+=======
+      - name: Lint with flake8
+        run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+>>>>>>> e4f1021 (minor updates and fix)
 
+<<<<<<< HEAD
     # 8️⃣ Run tests with pytest
     - name: Test with pytest
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         pytest tests/
+||||||| parent of e4f1021 (minor updates and fix)
+    - name: Test with pytest
+      run: pytest
+=======
+      - name: Test with pytest
+        run: pytest
+>>>>>>> e4f1021 (minor updates and fix)
