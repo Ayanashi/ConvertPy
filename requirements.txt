@@ -1,0 +1,5 @@
+# requirements.txt
+# Add project runtime dependencies here. This file is present so CI can detect dependency metadata.
+# Example:
+# numpy>=1.25
+# pandas>=2.0
