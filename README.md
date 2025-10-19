@@ -115,5 +115,6 @@ Developed by [**Ayanashi**](https://github.com/Ayanashi)
 Feel free to open an issue or pull request if you find bugs or want to contribute.
 ---
 ## 📜 License
-This project is licensed under the **MIT License**.  
-See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.  
+You are free to use, modify, and distribute this software under the terms of the GPLv3.  
+See the [LICENSE](LICENSE) file for full details.
