@@ -1,7 +1,3 @@
-# Simple CI workflow to run your script or tests on push, PR, or manually.
-# - Installs optional requirements.txt but won't fail the job if install errors.
-# - Runs pytest if tests are present, otherwise runs a specified script (default: convert.py).
-# - Exposes workflow_dispatch inputs so you can run a different script or pass args manually.
 name: CI - Run script
 
 on:
@@ -18,18 +14,26 @@ on:
         description: 'Arguments to pass to the script'
         required: false
         default: ''
-      # You can override Python versions by editing the file; dynamic override isn't implemented here.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
-        python-version: [3.11, 3.10]
+        python-version: [3.12, 3.11, 3.10]
     env:
-      # Use workflow_dispatch inputs when manually triggered; defaults are provided above.
-      SCRIPT_PATH: ${{ github.event.inputs.script-path || 'convert.py' }}
-      SCRIPT_ARGS: ${{ github.event.inputs.script-args || '' }}
+      # Use workflow_dispatch inputs when manually triggered; fallback to defaults.
+      SCRIPT_PATH: ${{ github.event.inputs['script-path'] || 'convert.py' }}
+      SCRIPT_ARGS: ${{ github.event.inputs['script-args'] || '' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,17 +47,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies (tolerant)
         run: |
           set -e
+          python -m pip install --upgrade pip setuptools wheel
           if [ -f requirements.txt ]; then
-            python -m pip install --upgrade pip
             # Try to install requirements but don't fail the whole job if installation fails.
             python -m pip install -r requirements.txt || echo "pip install failed, continuing job (install tolerant)."
           else
             echo "requirements.txt not found — skipping pip install."
+          fi
+
+          # If this repo is a package, install editable so imports work during tests
+          if [ -f setup.py ] || [ -f pyproject.toml ]; then
+            echo "Detected package metadata — installing package in editable mode"
+            python -m pip install -e . || echo "editable install failed, continuing job."
           fi
 
       - name: Run tests or script
@@ -64,9 +77,10 @@ jobs:
             echo "Detected tests — running pytest"
             if ! command -v pytest >/dev/null 2>&1; then
               echo "pytest not found; attempting to install pytest"
-              python -m pip install pytest || true
+              python -m pip install -U pytest || true
             fi
-            pytest -q || exit 1
+            # fail the job if tests fail
+            pytest -q --maxfail=1
           elif [ -f "${SCRIPT_PATH}" ]; then
             echo "Running script: ${SCRIPT_PATH} ${SCRIPT_ARGS}"
             python "${SCRIPT_PATH}" ${SCRIPT_ARGS}
