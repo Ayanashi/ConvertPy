@@ -1,4 +1,0 @@
-tqdm
-ffmpeg-python
-flake8
-pytest
