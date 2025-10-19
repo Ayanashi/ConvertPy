@@ -1,0 +1,78 @@
+# Simple CI workflow to run your script or tests on push, PR, or manually.
+# - Installs optional requirements.txt but won't fail the job if install errors.
+# - Runs pytest if tests are present, otherwise runs a specified script (default: convert.py).
+# - Exposes workflow_dispatch inputs so you can run a different script or pass args manually.
+name: CI - Run script
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      script-path:
+        description: 'Path to the script to run (relative to repo root)'
+        required: false
+        default: 'convert.py'
+      script-args:
+        description: 'Arguments to pass to the script'
+        required: false
+        default: ''
+      # You can override Python versions by editing the file; dynamic override isn't implemented here.
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.10]
+    env:
+      # Use workflow_dispatch inputs when manually triggered; defaults are provided above.
+      SCRIPT_PATH: ${{ github.event.inputs.script-path || 'convert.py' }}
+      SCRIPT_ARGS: ${{ github.event.inputs.script-args || '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Install dependencies (tolerant)
+        run: |
+          set -e
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            # Try to install requirements but don't fail the whole job if installation fails.
+            python -m pip install -r requirements.txt || echo "pip install failed, continuing job (install tolerant)."
+          else
+            echo "requirements.txt not found — skipping pip install."
+          fi
+
+      - name: Run tests or script
+        run: |
+          set -e
+          # Prefer running tests if any exist
+          if [ -d tests ] || ls *_test.py 1> /dev/null 2>&1 || ls test_*.py 1> /dev/null 2>&1; then
+            echo "Detected tests — running pytest"
+            if ! command -v pytest >/dev/null 2>&1; then
+              echo "pytest not found; attempting to install pytest"
+              python -m pip install pytest || true
+            fi
+            pytest -q || exit 1
+          elif [ -f "${SCRIPT_PATH}" ]; then
+            echo "Running script: ${SCRIPT_PATH} ${SCRIPT_ARGS}"
+            python "${SCRIPT_PATH}" ${SCRIPT_ARGS}
+          else
+            echo "No tests found and script '${SCRIPT_PATH}' does not exist in the repo."
+            echo "Repository listing:"
+            ls -la
+            exit 1
+          fi
