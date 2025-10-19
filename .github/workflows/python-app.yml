@@ -29,8 +29,9 @@ jobs:
       fail-fast: true
       matrix:
         python-version: [3.12, 3.11, 3.10]
+
     env:
-      # Use workflow_dispatch inputs when manually triggered; fallback to defaults.
+      # Usa input workflow_dispatch se esiste, altrimenti fallback a default
       SCRIPT_PATH: ${{ github.event.inputs['script-path'] || 'convert.py' }}
       SCRIPT_ARGS: ${{ github.event.inputs['script-args'] || '' }}
 
@@ -42,6 +43,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          check-latest: true
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -54,39 +56,27 @@ jobs:
 
       - name: Install dependencies (tolerant)
         run: |
-          set -e
           python -m pip install --upgrade pip setuptools wheel
           if [ -f requirements.txt ]; then
-            # Try to install requirements but don't fail the whole job if installation fails.
-            python -m pip install -r requirements.txt || echo "pip install failed, continuing job (install tolerant)."
-          else
-            echo "requirements.txt not found — skipping pip install."
+            python -m pip install -r requirements.txt || echo "pip install failed, continuing job."
           fi
-
-          # If this repo is a package, install editable so imports work during tests
           if [ -f setup.py ] || [ -f pyproject.toml ]; then
-            echo "Detected package metadata — installing package in editable mode"
             python -m pip install -e . || echo "editable install failed, continuing job."
           fi
 
       - name: Run tests or script
         run: |
-          set -e
-          # Prefer running tests if any exist
           if [ -d tests ] || ls *_test.py 1> /dev/null 2>&1 || ls test_*.py 1> /dev/null 2>&1; then
             echo "Detected tests — running pytest"
             if ! command -v pytest >/dev/null 2>&1; then
-              echo "pytest not found; attempting to install pytest"
               python -m pip install -U pytest || true
             fi
-            # fail the job if tests fail
             pytest -q --maxfail=1
           elif [ -f "${SCRIPT_PATH}" ]; then
             echo "Running script: ${SCRIPT_PATH} ${SCRIPT_ARGS}"
             python "${SCRIPT_PATH}" ${SCRIPT_ARGS}
           else
-            echo "No tests found and script '${SCRIPT_PATH}' does not exist in the repo."
-            echo "Repository listing:"
+            echo "No tests found and script '${SCRIPT_PATH}' does not exist."
             ls -la
             exit 1
           fi
